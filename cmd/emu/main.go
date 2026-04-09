@@ -17,9 +17,9 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/yanujz/go-modem-emu/internal/config"
-	"github.com/yanujz/go-modem-emu/internal/control"
-	"github.com/yanujz/go-modem-emu/internal/mux"
+	"github.com/signalroute/go-modem-emu/internal/config"
+	"github.com/signalroute/go-modem-emu/internal/control"
+	"github.com/signalroute/go-modem-emu/internal/mux"
 )
 
 var version = "dev"

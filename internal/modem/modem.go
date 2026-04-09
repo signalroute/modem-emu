@@ -15,8 +15,8 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/yanujz/go-modem-emu/internal/at"
-	"github.com/yanujz/go-modem-emu/internal/config"
+	"github.com/signalroute/go-modem-emu/internal/at"
+	"github.com/signalroute/go-modem-emu/internal/config"
 )
 
 // ── State ──────────────────────────────────────────────────────────────────

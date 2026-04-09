@@ -1,4 +1,4 @@
-module github.com/yanujz/go-modem-emu
+module github.com/signalroute/go-modem-emu
 
 go 1.22
 

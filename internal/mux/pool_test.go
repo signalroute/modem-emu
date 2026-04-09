@@ -14,7 +14,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/yanujz/go-modem-emu/internal/config"
+	"github.com/signalroute/go-modem-emu/internal/config"
 )
 
 // ── Helpers ───────────────────────────────────────────────────────────────

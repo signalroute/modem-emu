@@ -15,8 +15,8 @@ import (
 	"os"
 	"sync"
 
-	"github.com/yanujz/go-modem-emu/internal/config"
-	"github.com/yanujz/go-modem-emu/internal/modem"
+	"github.com/signalroute/go-modem-emu/internal/config"
+	"github.com/signalroute/go-modem-emu/internal/modem"
 )
 
 // ModemSlot pairs a Modem state machine with its listener address.
