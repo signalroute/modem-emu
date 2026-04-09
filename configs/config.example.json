@@ -1,0 +1,50 @@
+{
+  "control": {
+    "addr": "127.0.0.1:8888"
+  },
+  "transport": {
+    "kind": "unix",
+    "unix_base_path": "/tmp/modem-emu"
+  },
+  "modems": [
+    {
+      "profile": "SIM800L",
+      "iccid": "89490200001234567890",
+      "imsi": "262019000012345",
+      "msisdn": "+4915100000001",
+      "operator": "Telekom.de",
+      "operator_mcc": "262",
+      "operator_mnc": "01",
+      "signal_csq": 18,
+      "reg_stat": 1,
+      "sms_storage_max": 30,
+      "response_delay_ms": 5
+    },
+    {
+      "profile": "SIM7600",
+      "iccid": "89490200009876543210",
+      "imsi": "262019000098765",
+      "msisdn": "+4915100000002",
+      "operator": "Vodafone.de",
+      "operator_mcc": "262",
+      "operator_mnc": "02",
+      "signal_csq": 22,
+      "reg_stat": 1,
+      "sms_storage_max": 40,
+      "response_delay_ms": 8
+    },
+    {
+      "profile": "EC21",
+      "iccid": "89490200005555555550",
+      "imsi": "262019000055555",
+      "msisdn": "+4915100000003",
+      "operator": "O2 - DE",
+      "operator_mcc": "262",
+      "operator_mnc": "07",
+      "signal_csq": 12,
+      "reg_stat": 5,
+      "sms_storage_max": 20,
+      "response_delay_ms": 15
+    }
+  ]
+}
