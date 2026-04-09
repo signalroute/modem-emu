@@ -137,6 +137,10 @@ func TestPool_TCP_ICCIDsAreIsolated(t *testing.T) {
 	time.Sleep(30 * time.Millisecond)
 
 	// Each slot should respond with its own ICCID.
+	// Commands are sent one at a time (request/response), matching real gateway
+	// behaviour. Sending both in a single write causes bufio.Scanner on the
+	// modem side to issue an extra Read() after the nil-token for "\n", which
+	// on macOS loopback returns EOF when the peer's send buffer is exhausted.
 	for i, slot := range pool.Slots() {
 		expectedICCID := fmt.Sprintf("8949020000123456%04d", i)
 
@@ -144,17 +148,27 @@ func TestPool_TCP_ICCIDsAreIsolated(t *testing.T) {
 		if err != nil {
 			t.Fatalf("dial modem[%d]: %v", i, err)
 		}
-		conn.SetDeadline(time.Now().Add(2 * time.Second))
-		conn.Write([]byte("ATE0\r\nAT+CCID?\r\n"))
+		conn.SetDeadline(time.Now().Add(4 * time.Second))
 
 		sc := bufio.NewScanner(conn)
+
+		// Step 1: disable echo.
+		conn.Write([]byte("ATE0\r\n"))
+		for sc.Scan() {
+			if strings.TrimSpace(sc.Text()) == "OK" {
+				break
+			}
+		}
+
+		// Step 2: query ICCID.
+		conn.Write([]byte("AT+CCID?\r\n"))
 		found := false
 		for sc.Scan() {
 			line := strings.TrimSpace(sc.Text())
 			if strings.Contains(line, expectedICCID) {
 				found = true
 			}
-			if line == "OK" {
+			if found && line == "OK" {
 				break
 			}
 		}

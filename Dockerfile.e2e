@@ -1,0 +1,13 @@
+FROM golang:1.22-alpine AS builder
+WORKDIR /app
+COPY go.mod go.sum ./
+RUN go mod download
+COPY . .
+RUN CGO_ENABLED=0 go build -o go-modem-emu ./cmd/emu
+
+FROM alpine:latest
+RUN apk add --no-cache curl
+WORKDIR /app
+COPY --from=builder /app/go-modem-emu .
+EXPOSE 8888 7000-7001
+CMD ["./go-modem-emu"]

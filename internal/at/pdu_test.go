@@ -146,7 +146,7 @@ func TestDecodeSMSSubmitPDU_GSM7(t *testing.T) {
 		{"ZZZZ", "unknown"},
 	}
 	for _, tc := range cases {
-		t.Run(tc.hex[:min(8, len(tc.hex))+"_malformed"], func(t *testing.T) {
+		t.Run(tc.hex[:min(8, len(tc.hex))]+"_malformed", func(t *testing.T) {
 			d := DecodeSMSSubmitPDU(tc.hex)
 			if d.To != tc.wantTo {
 				t.Errorf("To: got %q, want %q", d.To, tc.wantTo)

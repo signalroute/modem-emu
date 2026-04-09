@@ -167,18 +167,28 @@ func (m *Modem) RunSession(ctx context.Context, conn io.ReadWriteCloser) {
 
 	// Drain URCs whenever we're between commands.
 	commandActive := &atomic.Int32{}
+	urcCtx, urcCancel := context.WithCancel(ctx)
+	defer urcCancel()
+
 	go func() {
 		for {
 			select {
-			case <-ctx.Done():
+			case <-urcCtx.Done():
 				return
 			case urc := <-m.urcCh:
 				// Wait briefly if a command is in-flight to avoid interleaving.
 				deadline := time.Now().Add(200 * time.Millisecond)
 				for commandActive.Load() == 1 && time.Now().Before(deadline) {
-					time.Sleep(5 * time.Millisecond)
+					select {
+					case <-urcCtx.Done():
+						return
+					case <-time.After(5 * time.Millisecond):
+					}
 				}
-				conn.Write([]byte("\r\n" + urc + "\r\n"))
+				if _, err := conn.Write([]byte("\r\n" + urc + "\r\n")); err != nil {
+					m.log.Debug("URC write failed, closing URC goroutine", "err", err)
+					return
+				}
 			}
 		}
 	}()
@@ -347,7 +357,7 @@ func (m *Modem) handleCMGS(ctx context.Context, w io.Writer, sc *bufio.Scanner, 
 		return
 	}
 	// Send the "> " prompt.
-	w.Write([]byte("\r\n> "))
+	w.Write([]byte("\r\n> \r\n"))
 
 	// Read PDU from next line.
 	if !sc.Scan() {

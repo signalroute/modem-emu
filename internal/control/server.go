@@ -14,7 +14,6 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/signalroute/go-modem-emu/internal/at"
-	"github.com/signalroute/go-modem-emu/internal/modem"
 	"github.com/signalroute/go-modem-emu/internal/mux"
 )
 
