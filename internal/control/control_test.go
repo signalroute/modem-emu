@@ -1,5 +1,5 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
-// Copyright (C) 2026 yanujz
+// SPDX-License-Identifier: MIT
+// Copyright (C) 2026 Signalroute
 
 package control_test
 
@@ -14,9 +14,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/signalroute/go-modem-emu/internal/config"
-	"github.com/signalroute/go-modem-emu/internal/control"
-	"github.com/signalroute/go-modem-emu/internal/mux"
+	"github.com/signalroute/modem-emu/internal/config"
+	"github.com/signalroute/modem-emu/internal/control"
+	"github.com/signalroute/modem-emu/internal/mux"
 )
 
 // ── Test helpers ──────────────────────────────────────────────────────────

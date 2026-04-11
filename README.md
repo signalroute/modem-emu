@@ -1,8 +1,8 @@
-# go-modem-emu
+# modem-emu
 
-A high-scale cellular modem emulator for end-to-end testing of `go-sms-gate`.
+A high-scale cellular modem emulator for end-to-end testing of Signalroute's `sms-gate` gateway.
 
-Instead of PTYs (limited by the kernel's `/dev/pts` pool), it exposes modems over **TCP sockets** or **Unix domain sockets** — one listener per simulated modem. The gateway uses the `transport: tcp` or `transport: unix` backend introduced in the refactored `go-sms-gate`.
+Instead of PTYs (limited by the kernel's `/dev/pts` pool), it exposes modems over **TCP sockets** or **Unix domain sockets** — one listener per simulated modem. The gateway uses the `transport: tcp` or `transport: unix` backend introduced in `sms-gate`.
 
 **Scaling**: 10,000 modems = 10,000 goroutines + 10,000 socket listeners. Each goroutine uses ~8 KB of stack and one OS socket. This is well within Linux's default limits.
 
@@ -11,8 +11,8 @@ Instead of PTYs (limited by the kernel's `/dev/pts` pool), it exposes modems ove
 ## Architecture
 
 ```
-go-sms-gate                          go-modem-emu
-──────────────────                   ─────────────────────────────────────
+sms-gate                             modem-emu
+────────                             ─────────
 Worker[0]  ──── tcp://127.0.0.1:7000 ──► Listener[0] → Modem[ICCID=...0000]
 Worker[1]  ──── tcp://127.0.0.1:7001 ──► Listener[1] → Modem[ICCID=...0001]
 ...
@@ -43,7 +43,7 @@ make build
 
 # Output:
 # ══════════════════════════════════════════════════════════════════
-#  Paste into go-sms-gate config.yaml:
+#  Paste into sms-gate config.yaml:
 # ══════════════════════════════════════════════════════════════════
 # modems:
 #   - transport: unix
@@ -56,7 +56,7 @@ make build
 ```
 
 ```bash
-# 3. Start go-sms-gate (paste the config snippet printed above)
+# 3. Start the gateway (paste the config snippet printed above)
 ./go-sms-gate --config config.yaml
 ```
 
@@ -86,7 +86,7 @@ For testing across machines or containers, use TCP:
 }
 ```
 
-In `go-sms-gate config.yaml`:
+In `sms-gate` config.yaml:
 ```yaml
 modems:
   - transport: tcp
@@ -145,4 +145,4 @@ python3 scripts/gen_config.py --count 1000 --transport tcp > configs/scale-1000.
 
 ## License
 
-GPL-3.0-or-later
+MIT — see [LICENSE](LICENSE).

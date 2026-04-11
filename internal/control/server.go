@@ -1,5 +1,5 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
-// Copyright (C) 2026 yanujz
+// SPDX-License-Identifier: MIT
+// Copyright (C) 2026 Signalroute
 
 package control
 
@@ -13,8 +13,8 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
-	"github.com/signalroute/go-modem-emu/internal/at"
-	"github.com/signalroute/go-modem-emu/internal/mux"
+	"github.com/signalroute/modem-emu/internal/at"
+	"github.com/signalroute/modem-emu/internal/mux"
 )
 
 // Server is the HTTP control/injection API.

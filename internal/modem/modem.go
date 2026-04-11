@@ -1,5 +1,5 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
-// Copyright (C) 2026 yanujz
+// SPDX-License-Identifier: MIT
+// Copyright (C) 2026 Signalroute
 
 package modem
 
@@ -15,8 +15,8 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/signalroute/go-modem-emu/internal/at"
-	"github.com/signalroute/go-modem-emu/internal/config"
+	"github.com/signalroute/modem-emu/internal/at"
+	"github.com/signalroute/modem-emu/internal/config"
 )
 
 // ── State ──────────────────────────────────────────────────────────────────

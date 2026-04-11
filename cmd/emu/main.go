@@ -1,5 +1,5 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
-// Copyright (C) 2026 yanujz
+// SPDX-License-Identifier: MIT
+// Copyright (C) 2026 Signalroute
 
 // Command emu is the go-modem-emu cellular modem emulator.
 // It listens on TCP or Unix sockets, one per simulated modem, and speaks
@@ -17,9 +17,9 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/signalroute/go-modem-emu/internal/config"
-	"github.com/signalroute/go-modem-emu/internal/control"
-	"github.com/signalroute/go-modem-emu/internal/mux"
+	"github.com/signalroute/modem-emu/internal/config"
+	"github.com/signalroute/modem-emu/internal/control"
+	"github.com/signalroute/modem-emu/internal/mux"
 )
 
 var version = "dev"

@@ -1,5 +1,5 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
-// Copyright (C) 2026 yanujz
+// SPDX-License-Identifier: MIT
+// Copyright (C) 2026 Signalroute
 
 // Package mux runs one socket listener per simulated modem.
 // Each accepted connection gets its own goroutine running the AT state machine.
@@ -15,8 +15,8 @@ import (
 	"os"
 	"sync"
 
-	"github.com/signalroute/go-modem-emu/internal/config"
-	"github.com/signalroute/go-modem-emu/internal/modem"
+	"github.com/signalroute/modem-emu/internal/config"
+	"github.com/signalroute/modem-emu/internal/modem"
 )
 
 // ModemSlot pairs a Modem state machine with its listener address.

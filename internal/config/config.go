@@ -1,5 +1,5 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
-// Copyright (C) 2026 yanujz
+// SPDX-License-Identifier: MIT
+// Copyright (C) 2026 Signalroute
 
 // Package config loads emulator configuration from a JSON file.
 // JSON is used directly to avoid proxy-blocked YAML dependencies in CI.

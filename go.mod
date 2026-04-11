@@ -1,4 +1,4 @@
-module github.com/signalroute/go-modem-emu
+module github.com/signalroute/modem-emu
 
 go 1.22
 

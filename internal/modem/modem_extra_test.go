@@ -1,5 +1,5 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
-// Copyright (C) 2026 yanujz
+// SPDX-License-Identifier: MIT
+// Copyright (C) 2026 Signalroute
 
 package modem
 
@@ -12,7 +12,7 @@ import (
 	"strings"
 	"testing"
 
-	config "github.com/signalroute/go-modem-emu/internal/config"
+	config "github.com/signalroute/modem-emu/internal/config"
 )
 
 // newTestModemWithCfg creates a Modem with a custom ModemConfig, connected via net.Pipe.
