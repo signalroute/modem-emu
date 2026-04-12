@@ -253,7 +253,7 @@ func (m *Modem) handleLine(ctx context.Context, line string, sc *bufio.Scanner, 
 		ok(w)
 
 	// ── Identity ───────────────────────────────────────────────────────
-	case upper == "AT+CCID?" || upper == "AT+ICCID?" || upper == "AT+QCCID":
+	case upper == "AT+CCID" || upper == "AT+CCID?" || upper == "AT+ICCID?" || upper == "AT+QCCID":
 		respond(w, "+CCID: "+m.cfg.ICCID); ok(w)
 	case upper == "AT+CIMI":
 		respond(w, m.cfg.IMSI); ok(w)
@@ -267,6 +267,10 @@ func (m *Modem) handleLine(ctx context.Context, line string, sc *bufio.Scanner, 
 		respond(w, fmt.Sprintf(`+COPS: 0,0,"%s",7`, m.cfg.Operator)); ok(w)
 	case upper == "AT+CREG?":
 		m.handleCREG(w)
+	case upper == "AT+CGREG?":
+		respond(w, fmt.Sprintf("+CGREG: 0,%d", m.regStat.Load())); ok(w)
+	case upper == "AT+CEREG?":
+		respond(w, fmt.Sprintf("+CEREG: 0,%d", m.regStat.Load())); ok(w)
 	case upper == "AT+CSQ":
 		respond(w, fmt.Sprintf("+CSQ: %d,0", m.signalCSQ.Load())); ok(w)
 	case upper == "AT+CPMS?":
