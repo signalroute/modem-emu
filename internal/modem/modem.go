@@ -64,6 +64,7 @@ type Modem struct {
 	signalCSQ   atomic.Int32
 	regStat     atomic.Int32
 	echoEnabled atomic.Int32 // 1=on (default per V.250), 0=off after ATE0
+	cmgfMode    atomic.Int32 // 0=PDU mode, 1=text mode (default 1)
 
 	storage *SIMStorage
 
@@ -87,6 +88,7 @@ func New(cfg config.ModemConfig, log *slog.Logger) *Modem {
 	m.signalCSQ.Store(int32(cfg.SignalCSQ))
 	m.regStat.Store(int32(cfg.RegStat))
 	m.echoEnabled.Store(1)
+	m.cmgfMode.Store(1) // default text mode
 	return m
 }
 
@@ -263,6 +265,12 @@ func (m *Modem) handleLine(ctx context.Context, line string, sc *bufio.Scanner, 
 	case upper == "AT&F":
 		ok(w)
 	case strings.HasPrefix(upper, "AT+CMGF="):
+		v := strings.TrimPrefix(upper, "AT+CMGF=")
+		if v == "0" {
+			m.cmgfMode.Store(0)
+		} else {
+			m.cmgfMode.Store(1)
+		}
 		ok(w)
 	case strings.HasPrefix(upper, "AT+CNMI="):
 		ok(w)
@@ -386,24 +394,39 @@ func (m *Modem) handleCMGS(ctx context.Context, w io.Writer, sc *bufio.Scanner, 
 	// Send the "> " prompt.
 	w.Write([]byte("\r\n> \r\n"))
 
-	// Read PDU from next line.
+	// Read the PDU or message body from the next line.
+	// scanATLines splits on \r, \n, or Ctrl-Z (0x1A), so the PDU/body is
+	// terminated naturally by Ctrl-Z without special handling here.
 	if !sc.Scan() {
 		w.Write([]byte("\r\n+CME ERROR: 302\r\n"))
 		return
 	}
-	pduLine := strings.ToUpper(strings.TrimRight(sc.Text(), "\x1A\r\n "))
+	raw := strings.TrimRight(sc.Text(), "\x1A\r\n ")
 
-	decoded := at.DecodeSMSSubmitPDU(pduLine)
+	var sentTo, sentBody, pduHex string
+	if m.cmgfMode.Load() == 0 {
+		// PDU mode: AT+CMGS=<n> where n is PDU length; raw is hex PDU.
+		pduHex = strings.ToUpper(raw)
+		decoded := at.DecodeSMSSubmitPDU(pduHex)
+		sentTo, sentBody = decoded.To, decoded.Body
+	} else {
+		// Text mode: AT+CMGS="<number>" where arg is the destination; raw is the body.
+		arg := strings.TrimPrefix(upper, "AT+CMGS=")
+		sentTo = strings.Trim(arg, `"`)
+		sentBody = raw
+		// Build a deliver PDU for record-keeping (best effort; errors ignored).
+		pduHex, _ = at.BuildSMSDeliverPDU(sentTo, sentBody)
+	}
 
 	m.mu.Lock()
 	m.mr = (m.mr + 1) % 256
 	mr := m.mr
 	m.sentMsgs = append(m.sentMsgs, SentSMS{
-		To: decoded.To, Body: decoded.Body, PDU: pduLine, At: time.Now(),
+		To: sentTo, Body: sentBody, PDU: pduHex, At: time.Now(),
 	})
 	m.mu.Unlock()
 
-	m.log.Info("SMS sent", "to", decoded.To, "mr", mr)
+	m.log.Info("SMS sent", "to", sentTo, "mr", mr, "mode", m.cmgfMode.Load())
 	respond(w, fmt.Sprintf("+CMGS: %d", mr))
 	ok(w)
 }
