@@ -56,10 +56,13 @@ func New(cfg *config.EmuConfig, log *slog.Logger) (*Pool, error) {
 			return nil, fmt.Errorf("modem[%d]: listen %s %s: %w", i, network, addr, err)
 		}
 
+		// Use the actual bound address (important when port 0 is configured).
+		boundAddr := ln.Addr().String()
+
 		p.slots = append(p.slots, &ModemSlot{
 			Index:   i,
 			Modem:   m,
-			Addr:    addr,
+			Addr:    boundAddr,
 			Network: network,
 		})
 		p.listeners = append(p.listeners, ln)
@@ -69,7 +72,7 @@ func New(cfg *config.EmuConfig, log *slog.Logger) (*Pool, error) {
 			"iccid", mc.ICCID,
 			"profile", mc.Profile,
 			"network", network,
-			"addr", addr,
+			"addr", boundAddr,
 		)
 	}
 	return p, nil

@@ -120,6 +120,23 @@ func (m *Modem) InjectSMS(from, body string) (int, error) {
 	return idx, nil
 }
 
+// InjectCMT sends a +CMT URC directly to the connected client, simulating
+// text-mode SMS delivery without storing in SIM storage.
+func (m *Modem) InjectCMT(from, body string) error {
+	if State(m.state.Load()) != StateActive {
+		return fmt.Errorf("modem is %s, cannot inject CMT", State(m.state.Load()))
+	}
+	ts := time.Now().UTC().Format("06/01/02,15:04:05+00")
+	urc := fmt.Sprintf("+CMT: \"%s\",\"%s\"\r\n%s", from, ts, body)
+	select {
+	case m.urcCh <- urc:
+	default:
+		m.log.Warn("URC channel full — +CMT dropped")
+	}
+	m.log.Info("CMT injected", "from", from)
+	return nil
+}
+
 func (m *Modem) SetSignal(csq int) {
 	m.signalCSQ.Store(int32(csq))
 }

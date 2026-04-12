@@ -73,6 +73,9 @@ func (s *Server) Handler() http.Handler {
 		// Inject one incoming SMS (fires +CMTI URC).
 		r.Post("/sms/inject", s.injectSMS)
 
+		// Inject an inbound SMS as a +CMT URC (direct text-mode delivery).
+		r.Post("/inject", s.injectCMT)
+
 		// List all SMS the gateway sent through this modem.
 		r.Get("/sms/sent", s.listSentSMS)
 
@@ -200,7 +203,29 @@ func (s *Server) injectSMS(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-// ── Sent SMS ───────────────────────────────────────────────────────────────
+// injectCMT delivers a +CMT URC directly to the AT client (text-mode delivery,
+// no SIM storage). Request body: {"from": "<msisdn>", "body": "<text>"}.
+func (s *Server) injectCMT(w http.ResponseWriter, r *http.Request) {
+	slot, ok := s.resolveSlot(w, r)
+	if !ok {
+		return
+	}
+	var req injectReq
+	if err := decodeBody(r, &req); err != nil {
+		writeError(w, 400, err.Error())
+		return
+	}
+	if req.From == "" || req.Body == "" {
+		writeError(w, 400, "from and body are required")
+		return
+	}
+	if err := slot.Modem.InjectCMT(req.From, req.Body); err != nil {
+		writeError(w, 409, err.Error())
+		return
+	}
+	s.log.Info("+CMT injected", "iccid", slot.Modem.ICCID(), "from", req.From)
+	writeJSON(w, 201, map[string]string{"message": "+CMT URC queued on socket"})
+}
 
 type sentItem struct {
 	To   string    `json:"to"`
