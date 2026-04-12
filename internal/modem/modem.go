@@ -249,6 +249,8 @@ func (m *Modem) handleLine(ctx context.Context, line string, sc *bufio.Scanner, 
 		ok(w)
 	case strings.HasPrefix(upper, "AT+CNMI="):
 		ok(w)
+	case upper == "AT+CNMI?":
+		respond(w, "+CNMI: 2,1,0,0,0"); ok(w)
 	case upper == "AT+CMEE=1" || upper == "AT+CMEE=2":
 		ok(w)
 
@@ -281,6 +283,10 @@ func (m *Modem) handleLine(ctx context.Context, line string, sc *bufio.Scanner, 
 	// ── SIM ────────────────────────────────────────────────────────────
 	case upper == "AT+CPIN?":
 		respond(w, "+CPIN: READY"); ok(w)
+	case upper == "AT+CSCA?":
+		respond(w, `+CSCA: "+4912345678",145`); ok(w)
+	case upper == `AT+CLCK="SC",2`:
+		respond(w, "+CLCK: 0"); ok(w)
 
 	// ── SMS ────────────────────────────────────────────────────────────
 	case strings.HasPrefix(upper, "AT+CMGR="):
