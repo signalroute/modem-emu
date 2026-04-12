@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"os"
 	"strconv"
 	"time"
 
@@ -19,12 +20,37 @@ import (
 
 // Server is the HTTP control/injection API.
 type Server struct {
-	pool *mux.Pool
-	log  *slog.Logger
+	pool  *mux.Pool
+	log   *slog.Logger
+	token string // empty → unauthenticated (MODEM_EMU_TOKEN not set)
 }
 
 func NewServer(pool *mux.Pool, log *slog.Logger) *Server {
-	return &Server{pool: pool, log: log.With("component", "control")}
+	s := &Server{
+		pool:  pool,
+		log:   log.With("component", "control"),
+		token: os.Getenv("MODEM_EMU_TOKEN"),
+	}
+	if s.token == "" {
+		s.log.Warn("MODEM_EMU_TOKEN is not set — control API running unauthenticated")
+	}
+	return s
+}
+
+// bearerAuth is a middleware that enforces Bearer token authentication when
+// the server was started with MODEM_EMU_TOKEN set.
+func (s *Server) bearerAuth(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if s.token == "" {
+			next.ServeHTTP(w, r)
+			return
+		}
+		if r.Header.Get("Authorization") != "Bearer "+s.token {
+			writeError(w, http.StatusUnauthorized, "invalid or missing Bearer token")
+			return
+		}
+		next.ServeHTTP(w, r)
+	})
 }
 
 // Handler returns the chi router with all control endpoints.
@@ -32,6 +58,7 @@ func (s *Server) Handler() http.Handler {
 	r := chi.NewRouter()
 	r.Use(middleware.RequestID)
 	r.Use(middleware.Recoverer)
+	r.Use(s.bearerAuth)
 
 	// ── Global status ─────────────────────────────────────────────────
 	r.Get("/modems", s.listModems)
