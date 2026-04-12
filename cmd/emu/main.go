@@ -14,6 +14,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 	"time"
 
@@ -41,7 +42,7 @@ func run() error {
 		return nil
 	}
 
-	log := slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{Level: slog.LevelInfo}))
+	log := buildLogger()
 
 	cfg, err := config.Load(*cfgPath)
 	if err != nil {
@@ -95,4 +96,26 @@ func run() error {
 	pool.Run(ctx)
 	log.Info("shutdown complete")
 	return nil
+}
+
+// buildLogger constructs a *slog.Logger respecting two env vars:
+//
+//	LOG_LEVEL  — debug | info | warn | error  (default: info)
+//	LOG_FORMAT — json | text                  (default: text)
+func buildLogger() *slog.Logger {
+	level := slog.LevelInfo
+	if s := os.Getenv("LOG_LEVEL"); s != "" {
+		var l slog.Level
+		if err := l.UnmarshalText([]byte(strings.ToUpper(s))); err == nil {
+			level = l
+		}
+	}
+	opts := &slog.HandlerOptions{Level: level}
+	var h slog.Handler
+	if strings.ToLower(os.Getenv("LOG_FORMAT")) == "json" {
+		h = slog.NewJSONHandler(os.Stderr, opts)
+	} else {
+		h = slog.NewTextHandler(os.Stderr, opts)
+	}
+	return slog.New(h)
 }
