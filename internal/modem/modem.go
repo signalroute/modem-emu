@@ -301,8 +301,16 @@ func (m *Modem) handleLine(ctx context.Context, line string, sc *bufio.Scanner, 
 		m.handleCREG(w)
 	case upper == "AT+CGREG?":
 		respond(w, fmt.Sprintf("+CGREG: 0,%d", m.regStat.Load())); ok(w)
+	case upper == "AT+CGREG=0" || upper == "AT+CGREG=1" || upper == "AT+CGREG=2":
+		ok(w)
 	case upper == "AT+CEREG?":
 		respond(w, fmt.Sprintf("+CEREG: 0,%d", m.regStat.Load())); ok(w)
+	case upper == "AT+CEREG=0" || upper == "AT+CEREG=1" || upper == "AT+CEREG=2" || upper == "AT+CEREG=3":
+		ok(w)
+	case upper == "AT+CGATT?":
+		respond(w, "+CGATT: 1"); ok(w)
+	case upper == "AT+CGATT=0" || upper == "AT+CGATT=1":
+		ok(w)
 	case upper == "AT+CSQ":
 		respond(w, fmt.Sprintf("+CSQ: %d,0", m.signalCSQ.Load())); ok(w)
 	case upper == "AT+CPMS?":
