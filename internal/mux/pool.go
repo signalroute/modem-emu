@@ -16,6 +16,7 @@ import (
 	"sync"
 
 	"github.com/signalroute/modem-emu/internal/config"
+	"github.com/signalroute/modem-emu/internal/metrics"
 	"github.com/signalroute/modem-emu/internal/modem"
 )
 
@@ -124,10 +125,12 @@ func (p *Pool) serveSlot(ctx context.Context, slot *ModemSlot, ln net.Listener) 
 			}
 		}
 		log.Info("client connected", "remote", conn.RemoteAddr())
+		metrics.ActiveConnections.Add(1)
 		// RunSession blocks for the lifetime of the connection.
 		// The modem state (signal, reg, storage) persists across reconnects —
 		// matching gateway restart behaviour.
 		slot.Modem.RunSession(ctx, conn)
+		metrics.ActiveConnections.Add(-1)
 		log.Info("client disconnected")
 	}
 }

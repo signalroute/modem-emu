@@ -17,6 +17,7 @@ import (
 
 	"github.com/signalroute/modem-emu/internal/at"
 	"github.com/signalroute/modem-emu/internal/config"
+	"github.com/signalroute/modem-emu/internal/metrics"
 )
 
 // ── State ──────────────────────────────────────────────────────────────────
@@ -119,6 +120,7 @@ func (m *Modem) InjectSMS(from, body string) (int, error) {
 		m.log.Warn("URC channel full — +CMTI dropped")
 	}
 	m.log.Info("SMS injected", "from", from, "slot", idx)
+	metrics.SMSInjectedTotal.Add(1)
 	return idx, nil
 }
 
@@ -249,6 +251,7 @@ func (m *Modem) handleLine(ctx context.Context, line string, sc *bufio.Scanner, 
 	}
 
 	upper := strings.ToUpper(strings.TrimSpace(line))
+	metrics.ATCommandsTotal.Add(atBaseName(upper), 1)
 
 	switch {
 	// ── Basic V.250 ────────────────────────────────────────────────────
@@ -474,6 +477,25 @@ func (m *Modem) respondProfile(w io.Writer) {
 // ── Write helpers ──────────────────────────────────────────────────────────
 
 func ok(w io.Writer)              { w.Write([]byte("\r\nOK\r\n")) }
+
+// atBaseName extracts the base AT command name for metrics labelling.
+// "AT+CMGS=..." → "AT+CMGS", "ATE0" → "ATE", "AT" → "AT".
+func atBaseName(upper string) string {
+	for i, c := range upper {
+		if c == '=' || c == '?' {
+			return upper[:i]
+		}
+	}
+	// Strip trailing digits from simple commands like ATE0 → ATE.
+	end := len(upper)
+	for end > 0 && upper[end-1] >= '0' && upper[end-1] <= '9' {
+		end--
+	}
+	if end < len(upper) && end > 2 { // keep "AT" intact
+		return upper[:end]
+	}
+	return upper
+}
 func respond(w io.Writer, s string) { w.Write([]byte("\r\n" + s)) }
 
 // ── Custom line scanner ────────────────────────────────────────────────────

@@ -20,6 +20,7 @@ import (
 
 	"github.com/signalroute/modem-emu/internal/config"
 	"github.com/signalroute/modem-emu/internal/control"
+	"github.com/signalroute/modem-emu/internal/metrics"
 	"github.com/signalroute/modem-emu/internal/mux"
 )
 
@@ -91,6 +92,25 @@ func run() error {
 		shutCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
 		ctrlSrv.Shutdown(shutCtx)
+	}()
+
+	// Metrics server (expvar).
+	metricsSrv := &http.Server{
+		Addr:        metrics.Addr(),
+		Handler:     metrics.Handler(),
+		ReadTimeout: 5 * time.Second,
+	}
+	go func() {
+		log.Info("metrics server listening", "addr", metrics.Addr())
+		if err := metricsSrv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Error("metrics server", "err", err)
+		}
+	}()
+	go func() {
+		<-ctx.Done()
+		shutCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+		metricsSrv.Shutdown(shutCtx)
 	}()
 
 	pool.Run(ctx)
