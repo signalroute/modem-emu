@@ -407,11 +407,28 @@ func (m *Modem) handleCMGS(ctx context.Context, w io.Writer, sc *bufio.Scanner, 
 		return
 	}
 	raw := strings.TrimRight(sc.Text(), "\x1A\r\n ")
+	// Issue #200: also strip the literal 4-char text escape "\x1a" that
+	// some clients send instead of the actual Ctrl-Z byte.
+	if strings.HasSuffix(strings.ToLower(raw), `\x1a`) {
+		raw = raw[:len(raw)-4]
+	}
+	raw = strings.TrimSpace(raw)
 
 	var sentTo, sentBody, pduHex string
 	if m.cmgfMode.Load() == 0 {
-		// PDU mode: AT+CMGS=<n> where n is PDU length; raw is hex PDU.
+		// PDU mode: AT+CMGS=<n> where n is the total PDU length in bytes.
+		arg := strings.TrimPrefix(upper, "AT+CMGS=")
+		var declaredLen int
+		if _, err := fmt.Sscanf(arg, "%d", &declaredLen); err != nil || declaredLen <= 0 {
+			w.Write([]byte("\r\nERROR\r\n"))
+			return
+		}
 		pduHex = strings.ToUpper(raw)
+		// Issue #196: reject if the actual PDU byte count doesn't match the declared length.
+		if len(pduHex)%2 != 0 || len(pduHex)/2 != declaredLen {
+			w.Write([]byte("\r\nERROR\r\n"))
+			return
+		}
 		decoded := at.DecodeSMSSubmitPDU(pduHex)
 		sentTo, sentBody = decoded.To, decoded.Body
 	} else {
