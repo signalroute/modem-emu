@@ -291,6 +291,8 @@ func (m *Modem) handleLine(ctx context.Context, line string, sc *bufio.Scanner, 
 		respond(w, "358240051111110"); ok(w)
 	case upper == "ATI" || upper == "AT+GMM" || upper == "AT+CGMM":
 		m.respondProfile(w); ok(w)
+	case upper == "AT+CGMI":
+		m.respondManufacturer(w); ok(w)
 
 	// ── Network ────────────────────────────────────────────────────────
 	case upper == "AT+COPS?":
@@ -457,6 +459,17 @@ func (m *Modem) handleHardReset(ctx context.Context, w io.Writer) {
 	}
 	m.echoEnabled.Store(1)
 	m.state.Store(int32(StateActive))
+}
+
+func (m *Modem) respondManufacturer(w io.Writer) {
+	switch m.cfg.Profile {
+	case "SIM800L", "SIM7600":
+		respond(w, "SIMCOM")
+	case "EC21":
+		respond(w, "Quectel")
+	default:
+		respond(w, "SignalRoute")
+	}
 }
 
 func (m *Modem) respondProfile(w io.Writer) {
